@@ -111,10 +111,9 @@ def fit_plane_and_shift(data):
     adjusted_data -= np.min(adjusted_data)  # Shift minimum to 0
     return adjusted_data
 
-def fit_cubic_col_and_shift(data, fit_flag=None, *args):
+def fit_poly_col_and_shift(data, fit_flag=None, *args):
     """
     Fits and removes line-by-line artifacts (often called 'scanner bow') along columns.
-    Note: Despite the function name 'cubic', it actually fits a 5th order (quintic) polynomial.
     """
     rows, cols = data.shape
     X = np.arange(rows)  
@@ -311,10 +310,10 @@ def load_h5_autosave_avg(folder_path, params):
     px, scan_t_N, scan_t_Z, tc, settling = params[:5]
     data = np.zeros([num_h5_scans, num_h5_channels, 2, data_shape[0], px])
     
-    # Calculate synchronization timing parameters
+    # Calculate alignment parameters
     sample_rate = data_shape[1]/scan_t_Z
-    desired_len = int(scan_t_N*sample_rate/px)*px # Total valid samples divisible by pixel count
-    settling_px = int(tc*settling*sample_rate) # Number of samples to discard due to filter lag
+    desired_len = int(scan_t_N*sample_rate/px)*px # Total valid samples (divisible by pixel count)
+    settling_px = int(tc*settling*sample_rate) # Number of samples to discard due to settling
 
     scan_idx = 0
     # Second pass: Extract, reshape, trim settling time, and average to desired pixels
@@ -344,7 +343,7 @@ def load_h5_autosave_avg(folder_path, params):
 # ==========================================
 
 def main(folder_path, data, channels, align, align_side):
-    """Orchestrates data loading, drift-correction alignment, and multi-panel visualization."""
+    """Load data, correct for drift, and plot data."""
     scan_data, ref_data = load_scan_files(folder_path)
     scan_shape = get_scan_shape(scan_data[0])
     topology_f_list, topology_b_list, shifts, masks, warp_success = [], [], [], [], []
@@ -352,8 +351,8 @@ def main(folder_path, data, channels, align, align_side):
     # Process reference image (Scan 0)
     ref_topo_f = fit_plane_and_shift(scan_data[0]['topo_f'].values.reshape(scan_shape))
     ref_topo_b = fit_plane_and_shift(scan_data[0]['topo_b'].values.reshape(scan_shape))
-    ref_topo_f, _ = fit_cubic_col_and_shift(ref_topo_f, align_side)
-    ref_topo_b, _ = fit_cubic_col_and_shift(ref_topo_b, align_side)
+    ref_topo_f, _ = fit_poly_col_and_shift(ref_topo_f, align_side)
+    ref_topo_b, _ = fit_poly_col_and_shift(ref_topo_b, align_side)
 
     topology_f_list.append(ref_topo_f)
     topology_b_list.append(ref_topo_b)
@@ -370,8 +369,8 @@ def main(folder_path, data, channels, align, align_side):
         # Flatten topography
         topo_f = fit_plane_and_shift(topo_f)
         topo_b = fit_plane_and_shift(topo_b)
-        topo_f, _ = fit_cubic_col_and_shift(topo_f, align_side)
-        topo_b, _ = fit_cubic_col_and_shift(topo_b, align_side)
+        topo_f, _ = fit_poly_col_and_shift(topo_f, align_side)
+        topo_b, _ = fit_poly_col_and_shift(topo_b, align_side)
 
         if align:
             try:
@@ -399,7 +398,7 @@ def main(folder_path, data, channels, align, align_side):
 
     # Feed calculated Topography shifts to align optical data
     h5_results = process_h5_file(data, channels, scan_shape, shifts, warp_success, align)
-    print(f"sucessful aligns: {np.sum(warp_success)} of {len(warp_success)}")
+    print(f"Sucessful Aligns: {np.sum(warp_success)} of {len(warp_success)}")
 
     # Setup hardware-specific plot titles (demodulation harmonics in s-SNOM)
     titles = [[r"Cantilever",r"$38.9$ kHz"], 

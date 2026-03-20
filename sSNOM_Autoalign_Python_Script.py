@@ -5,7 +5,7 @@ sys.path.insert(1, 'D:/Users/sSNOM/Documents/aSNOM/Code Repo/Electronic_Modules'
 
 # import file
 from Koco_Linear_Actuator.linearmotor_comms import LinearMotor # type: ignore
-from Zurich_Align_Avg import get_scan_shape, fit_plane_and_shift, fit_cubic_col_and_shift, align_images # type: ignore
+from sSNOM_Scan_Average import get_scan_shape, fit_plane_and_shift, fit_poly_col_and_shift, align_images # type: ignore
 import numpy as np
 import pandas as pd
 import time, glob, re
@@ -64,11 +64,11 @@ def main(folder_path, motor_id, num_scans):
             
             # Prepare Reference Image: Flatten and remove scanner bow
             ref_topo_f = fit_plane_and_shift(scan_data[0]['topo_f'].values.reshape(scan_shape))
-            ref_topo_f, _ = fit_cubic_col_and_shift(ref_topo_f, 'left')
+            ref_topo_f, _ = fit_poly_col_and_shift(ref_topo_f, 'left')
 
             # Prepare Newest Image: Flatten and remove scanner bow
             topo_f = fit_plane_and_shift(scan_data[1]['topo_f'].values.reshape(scan_shape))
-            topo_f, _ = fit_cubic_col_and_shift(topo_f, 'left')
+            topo_f, _ = fit_poly_col_and_shift(topo_f, 'left')
 
             try:
                 # Calculate pixel shift between reference and new scan
