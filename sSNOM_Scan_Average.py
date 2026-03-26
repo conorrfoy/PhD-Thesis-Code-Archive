@@ -45,6 +45,11 @@ def get_aspect(data):
 # Image Processing & Artifact Correction
 # ==========================================
 
+def rel_int_scale(data): # Rescale data to range [0,1]
+    min_val = np.min(data)
+    max_val = np.max(data)
+    return (data - min_val) / (max_val - min_val)
+
 def subtract_background_plane(image):
     """
     Removes a first-order global tilt (background plane) from an image using least squares.
@@ -448,7 +453,7 @@ def main(folder_path, data, channels, align, align_side):
 
         # Plot 2: Optical Amplitude (R) Forward
         ax2 = plt.subplot(*plot_shape, plot_layout[1])
-        im2 = ax2.imshow(np.clip(h5_results[channel]['R_f'],0,np.percentile(h5_results[channel]['R_f'], percentile_clip)), cmap='inferno', aspect=get_aspect(h5_results[channel]['R_f']), extent=extent)
+        im2 = ax2.imshow(rel_int_scale(np.clip(h5_results[channel]['R_f'],0,np.percentile(h5_results[channel]['R_f'], percentile_clip))), cmap='inferno', aspect=get_aspect(h5_results[channel]['R_f']), extent=extent)
         ax2.set_title(r'Mean $R$ Forward', fontsize=FONT_SIZE_SUBTITLE)
         ax2.set_xlabel(r'Distance ($\mu$m)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS)
         ax2.set_ylabel(r'Distance ($\mu$m)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS)
@@ -465,7 +470,7 @@ def main(folder_path, data, channels, align, align_side):
         # Plot 4: Optical Phase Standard Deviation Forward (maps sample edge noise)
         ax4 = plt.subplot(*plot_shape, plot_layout[3])
         im4 = ax4.imshow(np.clip(h5_results[channel]['theta_f_std'],0,np.percentile(h5_results[channel]['theta_f_std'], percentile_clip)), cmap=plt.get_cmap('inferno').reversed(), aspect=get_aspect(h5_results[channel]['theta_f_std']), extent=extent)
-        ax4.set_title(r'SD $\theta$ Forward', fontsize=FONT_SIZE_SUBTITLE)
+        ax4.set_title(r'Std. $\theta$ Forward', fontsize=FONT_SIZE_SUBTITLE)
         ax4.set_xlabel(r'Distance ($\mu$m)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS)
         ax4.set_ylabel(r'Distance ($\mu$m)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS)
         plt.colorbar(im4, ax=ax4, shrink=shrink_cb).set_label(label='Phase (degrees)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS_CB)
@@ -481,7 +486,7 @@ def main(folder_path, data, channels, align, align_side):
 
         # Plot 6: Optical Amplitude (R) Backward
         ax6 = plt.subplot(*plot_shape, plot_layout[5])
-        im6 = ax6.imshow(np.clip(h5_results[channel]['R_b'],0,np.percentile(h5_results[channel]['R_b'], percentile_clip)), cmap='inferno', aspect=get_aspect(h5_results[channel]['R_b']), extent=extent)
+        im6 = ax6.imshow(rel_int_scale(np.clip(h5_results[channel]['R_b'],0,np.percentile(h5_results[channel]['R_b'], percentile_clip))), cmap='inferno', aspect=get_aspect(h5_results[channel]['R_b']), extent=extent)
         ax6.set_title(r'Mean $R$ Backward', fontsize=FONT_SIZE_SUBTITLE)
         # ... (axis labels omitted for brevity) ...
         plt.colorbar(im6, ax=ax6, shrink=shrink_cb).set_label(label='Intensity (a.u.)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS_CB)
@@ -496,7 +501,7 @@ def main(folder_path, data, channels, align, align_side):
         # Plot 8: Optical Phase Standard Deviation Backward
         ax8 = plt.subplot(*plot_shape, plot_layout[7])
         im8 = ax8.imshow(np.clip(h5_results[channel]['theta_b_std'],0,np.percentile(h5_results[channel]['theta_b_std'], percentile_clip)), cmap=plt.get_cmap('inferno').reversed(), aspect=get_aspect(h5_results[channel]['theta_b_std']), extent=extent)
-        ax8.set_title(r'SD $\theta$ Backward', fontsize=FONT_SIZE_SUBTITLE)
+        ax8.set_title(r'Std. $\theta$ Backward', fontsize=FONT_SIZE_SUBTITLE)
         # ... (axis labels omitted for brevity) ...
         plt.colorbar(im8, ax=ax8, shrink=shrink_cb).set_label(label='Phase (degrees)', fontsize=FONT_SIZE_AXIS, labelpad=LABEL_PAD_AXIS_CB)
 
